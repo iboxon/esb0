@@ -56,6 +56,10 @@ public class AdminAction extends Action {
 		resource = URLUtils.decode(resource);
 		switch (verb) {
 		case "GET":
+			if (context.getGlobalContext().getFileSystem() == null) {
+				throwHttpError(message, SC_INTERNAL_SERVER_ERROR, new ExecutionException(this, "ESB0 not yet fully initialized"));
+				break;
+			}
 			if (resource.isEmpty()) {
 				String filename = message.getVariable(ESBConstants.filename);
 				if (filename != null) {

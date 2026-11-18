@@ -111,7 +111,24 @@ public final class GlobalContext extends Registry implements Runnable, com.artof
 
 			@Override
 			protected Artifact getBaseArtifact() {
-				return getFileSystem().getRoot();
+				FileSystem fileSystem = getFileSystem();
+				if (fileSystem == null) {
+					// Race condition: IBM MQ/JMS message arrived before FileSystem was initialized					
+					final long deadline = System.currentTimeMillis() + DEPLOY_TIMEOUT * 1000L;
+					while (fileSystem == null && System.currentTimeMillis() < deadline) {
+						try {
+							Thread.sleep(100);
+						} catch (InterruptedException e) {
+							Thread.currentThread().interrupt();
+							break;
+						}
+						fileSystem = getFileSystem();
+					}
+					if (fileSystem == null) {
+						throw new IllegalStateException("FileSystem not initialized after " + DEPLOY_TIMEOUT + "s");
+					}
+				}
+				return fileSystem.getRoot();
 			}
 		};
 		_xmlProcessorFactory = XMLProcessorFactory.newInstance(_uriResolver);

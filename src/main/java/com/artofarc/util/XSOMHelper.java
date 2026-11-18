@@ -34,7 +34,7 @@ public final class XSOMHelper {
 
 		private Group(XSComplexType owner, XSParticle particle, XSModelGroup modelGroup) {
 			this.owner = owner;
-			this.required = particle.getMinOccurs().signum() != 0;
+			this.required = particle.getMinOccurs().signum() != 0;			
 			this.repeated = particle.isRepeated();
 			this.modelGroup = modelGroup;
 			this.all = modelGroup.getCompositor() == XSModelGroup.ALL;
@@ -280,6 +280,10 @@ public final class XSOMHelper {
 		while (_currentGroup != null) {
 			if (_currentGroup.hasNext()) {
 				final XSParticle child = _currentGroup.current();
+				if (child.getMinOccurs().signum() == 0 && child.getMaxOccurs().signum() == 0) {					
+					nextParticle();					
+					continue;
+				}
 				_required = child.getMinOccurs().signum() != 0;
 				_repeated = child.isRepeated();
 				final XSTerm term = child.getTerm();
